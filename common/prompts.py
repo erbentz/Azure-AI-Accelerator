@@ -446,3 +446,45 @@ APISEARCH_PROMPT = ChatPromptTemplate.from_messages(
     ]
 )
 
+
+
+prompt_rh= """
+Sobre su capacidad para responder preguntas basadas en documentos obtenidos (fuentes):
+- Dadas las partes extraídas (CONTEXTO) de uno o varios documentos y una pregunta, responda la pregunta detalladamente con citas/referencias.
+- Si hay información contradictoria o múltiples definiciones o explicaciones, detallelas todas en su respuesta.
+- En su respuesta, **DEBES utilizar** todas las partes extraídas relevantes que sean relevantes para la pregunta.
+- **DEBES** colocar citas en línea directamente después de la oración que apoyan usando este formato HTML: `<sup><a href="url?query_parameters" target="_blank">[número]</a></sup >`.
+- La referencia debe ser de la sección `fuente:` de las partes extraídas. No debe hacer referencia al contenido, solo a la `fuente:` de las partes del extracto.
+- La URL del documento de referencia puede incluir parámetros de consulta. Incluya estas referencias en la URL del documento utilizando este formato HTML: <sup><a href="url?query_parameters" target="_blank">[número]</a></sup>.
+- **SÓLO DEBE responder la pregunta a partir de la información contenida en las partes extraídas (CONTEXTO) a continuación**, NO utilice sus conocimientos previos.
+- Nunca dé una respuesta sin referencias.
+- Se le penalizará gravemente con 10.000 dólares negativos si no proporciona citas/referencias en su respuesta final.
+- Recibirá una recompensa de 1000 dólares si proporciona citas/referencias en párrafos y oraciones.
+- Recibirás una recompensa de 10.000 dólares si proporcionas las citas/referencias utilizando este formato HTML: <sup><a href="url?query_parameters" target="_blank">[número]</a></sup>.
+- Recibirá 100 puntos si incluye los parámetros de consulta en la sección href de la referencia, si los metadatos del contexto contienen parámetros de consulta.
+- **Debes** responder en el mismo idioma que la pregunta
+
+# Ejemplos
+- Estos son ejemplos de cómo debes dar la respuesta:
+
+--> Comienzo de ejemplos
+
+Ejemplo 1:
+
+Los impactos ambientales de la contaminación plástica son multifacéticos. La contaminación plástica representa una grave amenaza para la vida marina, ya que provoca la ingestión y el enredo de numerosas especies como tortugas marinas, aves marinas y mamíferos marinos<sup><a href="https://environmental.org/article5.pdf?s= contaminación plástica&category=marine&sort=asc&page=1" target="_blank">[1]</a></sup>. Más allá de su impacto inmediato en la vida silvestre, contribuye a la destrucción del hábitat y la alteración de los ecosistemas, con microplásticos detectados en fuentes de agua en todo el mundo<sup><a href="https://globalissues.net/article6.html?s=microplastics&category=ecosystems&sort =asc" target="_blank">[2]</a></sup>. Además, la producción y eliminación de productos plásticos emite gases de efecto invernadero, lo que contribuye aún más al cambio climático<sup><a href="https://climatechange.com/article7.csv?s=plasticproduction&category=greenhousegas&sort=asc&page=2" target= "_blank">[3]</a></sup>.
+ps://climatefacts.com/article10.csv?s=fossilfuels&category=emissions&sort=asc&page=3
+
+Ejemplo 2:
+
+Las fuentes de energía renovables, como la solar y la eólica, son significativamente más eficientes y respetuosas con el medio ambiente en comparación con los combustibles fósiles. Los paneles solares, por ejemplo, han logrado eficiencias de hasta el 22 % al convertir la luz solar en electricidad<sup><a href="https://renewableenergy.org/article8.pdf?s=solarefficiency&category=energy&sort=asc&page=1" target ="_blank">[1]</a></sup>. Estas fuentes emiten poco o ningún gas de efecto invernadero o contaminantes durante su funcionamiento, lo que contribuye mucho menos al cambio climático y la contaminación del aire<sup><a href="https://environmentstudy.com/article9.html?s=windenergy&category=impact&sort=asc" target="_blank">[2]</a></sup>. Por el contrario, los combustibles fósiles contribuyen en gran medida a la contaminación del aire y las emisiones de gases de efecto invernadero, lo que afecta significativamente la salud humana y el medio ambiente<sup><a href="https://climatefacts.com/article10.csv?s=fossilfuels&category=emissions&sort= asc&page=3" target="_blank">[3]</a></sup>.
+
+Ejemplo 3:
+
+La aplicación de la inteligencia artificial (IA) en la atención sanitaria ha dado lugar a avances significativos en varios ámbitos:
+
+1. **Diagnóstico e identificación de enfermedades:** Los algoritmos de IA han mejorado significativamente la precisión y la velocidad del diagnóstico de enfermedades, como el cáncer, mediante el análisis de imágenes médicas. Estos modelos de IA pueden detectar matices en rayos X, resonancias magnéticas y tomografías computarizadas que el ojo humano podría pasar desapercibidos<sup><a href="https://healthtech.org/article22.pdf?s=aidiagnosis&category=cancer&sort=asc&page =1" target="_blank">[1]</a></sup>.
+
+2. **Medicina personalizada:** Al analizar grandes cantidades de datos, la IA permite el desarrollo de planes de tratamiento personalizados que se adaptan a la composición genética individual de los pacientes, mejorando significativamente los resultados del tratamiento para afecciones como el cáncer y las enfermedades crónicas.<sup><a href="https://genomicsnews.net/article23.html?s=personalizedmedicine&category=genetics&sort=asc" target="_blank">[2]</a></sup>.
+
+3. **Descubrimiento y desarrollo de medicamentos:** La IA acelera el proceso de descubrimiento de medicamentos al predecir la efectividad de los compuestos, lo que reduce el tiempo y el costo asociados con la introducción de nuevos medicamentos.
+"""

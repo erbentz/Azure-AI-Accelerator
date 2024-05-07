@@ -1,0 +1,207 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "webAppName": {
+          "defaultValue": "[format('webApp-Frontend-{0}', uniqueString(resourceGroup().id))]",
+          "minLength": 2,
+          "maxLength": 60,
+          "type": "String",
+          "metadata": {
+              "description": "Optional. Web app name must be between 2 and 60 characters."
+          }
+      },
+      "appServicePlanSKU": {
+          "defaultValue": "B2",
+          "allowedValues": [
+              "B3",
+              "S3",
+              "P2v3",
+              "B2"
+          ],
+          "type": "String",
+          "metadata": {
+              "description": "Optional, defaults to S3. The SKU of App Service Plan. The allowed values are B3, S3 and P2v3."
+          }
+      },
+      "appServicePlanName": {
+          "defaultValue": "[format('AppServicePlan-Frontend-{0}', uniqueString(resourceGroup().id))]",
+          "type": "String",
+          "metadata": {
+              "description": "Optional. The name of the App Service Plan."
+          }
+      },
+      "botServiceName": {
+          "type": "String",
+          "metadata": {
+              "description": "Required. The name of your Bot Service."
+          }
+      },
+      "botDirectLineChannelKey": {
+          "type": "SecureString",
+          "metadata": {
+              "description": "Required. The key to the direct line channel of your bot."
+          }
+      },
+      "blobSASToken": {
+          "type": "SecureString",
+          "metadata": {
+              "description": "Required. The SAS token for the Azure Storage Account hosting your data"
+          }
+      },
+      "resourceGroupSearch": {
+          "defaultValue": "[resourceGroup().name]",
+          "type": "String",
+          "metadata": {
+              "description": "Optional. The name of the resource group where the resources (Azure Search etc.) where deployed previously. Defaults to current resource group."
+          }
+      },
+      "azureSearchName": {
+          "type": "String",
+          "metadata": {
+              "description": "Required. The name of the Azure Search service deployed previously."
+          }
+      },
+      "azureSearchAPIVersion": {
+          "defaultValue": "2023-10-01-preview",
+          "type": "String",
+          "metadata": {
+              "description": "Optional. The API version of the Azure Search."
+          }
+      },
+      "azureOpenAIName": {
+          "type": "String",
+          "metadata": {
+              "description": "Required. The name of the Azure OpenAI resource deployed previously."
+          }
+      },
+      "azureOpenAIAPIKey": {
+          "type": "SecureString",
+          "metadata": {
+              "description": "Required. The API key of the Azure OpenAI resource deployed previously."
+          }
+      },
+      "azureOpenAIModelName": {
+          "defaultValue": "gpt-35-turbo-1106",
+          "type": "String",
+          "metadata": {
+              "description": "Optional. The model name of the Azure OpenAI."
+          }
+      },
+      "azureOpenAIAPIVersion": {
+          "defaultValue": "2023-12-01-preview",
+          "type": "String",
+          "metadata": {
+              "description": "Optional. The API version of the Azure OpenAI."
+          }
+      },
+      "location": {
+          "defaultValue": "[resourceGroup().location]",
+          "type": "String",
+          "metadata": {
+              "description": "Optional, defaults to resource group location. The location of the resources."
+          }
+      }
+  },
+  "resources": [
+      {
+          "type": "Microsoft.Web/serverfarms",
+          "apiVersion": "2022-09-01",
+          "name": "[parameters('appServicePlanName')]",
+          "location": "[parameters('location')]",
+          "sku": {
+              "name": "[parameters('appServicePlanSKU')]"
+          },
+          "kind": "linux",
+          "properties": {
+              "reserved": true
+          }
+      },
+      {
+          "type": "Microsoft.Web/sites",
+          "apiVersion": "2022-09-01",
+          "name": "[parameters('webAppName')]",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+              "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+          ],
+          "tags": {
+              "azd-service-name": "frontend"
+          },
+          "properties": {
+              "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+              "siteConfig": {
+                  "appSettings": [
+                      {
+                          "name": "BOT_SERVICE_NAME",
+                          "value": "[parameters('botServiceName')]"
+                      },
+                      {
+                          "name": "BOT_DIRECTLINE_SECRET_KEY",
+                          "value": "[parameters('botDirectLineChannelKey')]"
+                      },
+                      {
+                          "name": "BLOB_SAS_TOKEN",
+                          "value": "[parameters('blobSASToken')]"
+                      },
+                      {
+                          "name": "AZURE_SEARCH_ENDPOINT",
+                          "value": "[format('https://{0}.search.windows.net', parameters('azureSearchName'))]"
+                      },
+                      {
+                          "name": "AZURE_SEARCH_KEY",
+                          "value": "[listAdminKeys(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupSearch')), 'Microsoft.Search/searchServices', parameters('azureSearchName')), '2021-04-01-preview').primaryKey]"
+                      },
+                      {
+                          "name": "AZURE_SEARCH_API_VERSION",
+                          "value": "[parameters('azureSearchAPIVersion')]"
+                      },
+                      {
+                          "name": "AZURE_OPENAI_ENDPOINT",
+                          "value": "[format('https://{0}.openai.azure.com/', parameters('azureOpenAIName'))]"
+                      },
+                      {
+                          "name": "AZURE_OPENAI_API_KEY",
+                          "value": "[parameters('azureOpenAIAPIKey')]"
+                      },
+                      {
+                          "name": "AZURE_OPENAI_MODEL_NAME",
+                          "value": "[parameters('azureOpenAIModelName')]"
+                      },
+                      {
+                          "name": "AZURE_OPENAI_API_VERSION",
+                          "value": "[parameters('azureOpenAIAPIVersion')]"
+                      },
+                      {
+                          "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                          "value": "true"
+                      }
+                  ]
+              }
+          }
+      },
+      {
+          "type": "Microsoft.Web/sites/config",
+          "apiVersion": "2022-09-01",
+          "name": "[format('{0}/{1}', parameters('webAppName'), 'web')]",
+          "dependsOn": [
+              "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
+          ],
+          "properties": {
+              "linuxFxVersion": "PYTHON|3.10",
+              "alwaysOn": true,
+              "appCommandLine": "python -m streamlit run Home.py --server.port 8000 --server.address 0.0.0.0"
+          }
+      }
+  ],
+  "outputs": {
+      "webAppURL": {
+          "type": "String",
+          "value": "[reference(resourceId('Microsoft.Web/sites', parameters('webAppName')), '2022-09-01').defaultHostName]"
+      },
+      "webAppName": {
+          "type": "String",
+          "value": "[parameters('webAppName')]"
+      }
+  }
+}
